@@ -2,6 +2,7 @@ package org.example.todospringrecapproject.todo;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 
@@ -30,5 +31,14 @@ public class TodoController {
         );
 
         return todoRepository.save(todo);
+    }
+
+    @GetMapping("/{id}")
+    public Todo getTodoById(@PathVariable String id) {
+        return todoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Todo not found: " + id
+                ));
     }
 }

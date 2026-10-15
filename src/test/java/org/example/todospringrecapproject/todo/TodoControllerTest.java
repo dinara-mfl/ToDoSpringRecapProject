@@ -8,6 +8,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
 
 import java.util.List;
+import java.util.Optional;
 
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -25,6 +26,7 @@ class TodoControllerTest {
     @MockitoBean
     private TodoRepository todoRepository;
 
+    // GET - getAllTodos
     @Test
     void getAllTodos_ReturnsEmptyList_WhenNoTodosExist() throws Exception {
         when(todoRepository.findAll()).thenReturn(List.of());
@@ -61,6 +63,7 @@ class TodoControllerTest {
         verify(todoRepository).findAll();
     }
 
+    // POST - createTodo
     @Test
     void createTodo_ReturnsSavedTodo() throws Exception {
         Todo todoToSave = new Todo(
@@ -95,5 +98,41 @@ class TodoControllerTest {
                     """));
 
         verify(todoRepository).save(todoToSave);
+    }
+
+    // GET - getTodoById
+    @Test
+    void getTodoById_ReturnsTodo_WhenIdExists() throws Exception {
+        Todo todo = new Todo(
+                "1",
+                "Recap project",
+                TodoStatus.OPEN
+        );
+
+        when(todoRepository.findById("1"))
+                .thenReturn(Optional.of(todo));
+
+        mockMvc.perform(get("/api/todo/1"))
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                    {
+                      "id": "1",
+                      "description": "Recap project",
+                      "status": "OPEN"
+                    }
+                    """));
+
+        verify(todoRepository).findById("1");
+    }
+
+    @Test
+    void getTodoById_ReturnsNotFound_WhenIdDoesNotExist() throws Exception {
+        when(todoRepository.findById("missing"))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(get("/api/todo/missing"))
+                .andExpect(status().isNotFound());
+
+        verify(todoRepository).findById("missing");
     }
 }
