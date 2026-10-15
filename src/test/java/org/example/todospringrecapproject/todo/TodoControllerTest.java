@@ -193,4 +193,36 @@ class TodoControllerTest {
         verify(todoRepository).findById("missing");
         verify(todoRepository, never()).save(any(Todo.class));
     }
+
+    // DELETE - deleteTodo
+    @Test
+    void deleteTodo_ReturnsNoContent_WhenIdExists() throws Exception {
+        Todo existingTodo = new Todo(
+                "1",
+                "Recap project",
+                TodoStatus.DONE
+        );
+
+        when(todoRepository.findById("1"))
+                .thenReturn(Optional.of(existingTodo));
+
+        mockMvc.perform(delete("/api/todo/1"))
+                .andExpect(status().isNoContent())
+                .andExpect(content().string(""));
+
+        verify(todoRepository).findById("1");
+        verify(todoRepository).deleteById("1");
+    }
+
+    @Test
+    void deleteTodo_ReturnsNotFound_WhenIdDoesNotExist() throws Exception {
+        when(todoRepository.findById("missing"))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(delete("/api/todo/missing"))
+                .andExpect(status().isNotFound());
+
+        verify(todoRepository).findById("missing");
+        verify(todoRepository, never()).deleteById(any(String.class));
+    }
 }

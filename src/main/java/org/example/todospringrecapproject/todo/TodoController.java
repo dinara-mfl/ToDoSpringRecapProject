@@ -61,4 +61,16 @@ public class TodoController {
 
         return todoRepository.save(updatedTodo);
     }
+
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void deleteTodo(@PathVariable String id) {
+        Todo existingTodo = todoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Todo not found: " + id
+                ));
+
+        todoRepository.deleteById(existingTodo.id());
+    }
 }
