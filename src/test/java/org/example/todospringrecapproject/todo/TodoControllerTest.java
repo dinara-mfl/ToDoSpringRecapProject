@@ -38,7 +38,7 @@ class TodoControllerTest {
     void getAllTodos_ReturnsExistingTodos() throws Exception {
         Todo todo = new Todo(
                 "1",
-                "Spring Boot lernen",
+                "Recap project",
                 TodoStatus.OPEN
         );
 
