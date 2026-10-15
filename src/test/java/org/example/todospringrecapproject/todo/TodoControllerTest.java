@@ -10,10 +10,8 @@ import org.springframework.test.web.servlet.MockMvc;
 import java.util.List;
 import java.util.Optional;
 
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.mockito.Mockito.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -134,5 +132,65 @@ class TodoControllerTest {
                 .andExpect(status().isNotFound());
 
         verify(todoRepository).findById("missing");
+    }
+
+    // PUT - updateTodo
+    @Test
+    void updateTodo_ReturnsUpdatedTodo_WhenIdExists() throws Exception {
+        Todo existingTodo = new Todo(
+                "1",
+                "Recap project",
+                TodoStatus.OPEN
+        );
+
+        Todo updatedTodo = new Todo(
+                "1",
+                "Finish recap project",
+                TodoStatus.IN_PROGRESS
+        );
+
+        when(todoRepository.findById("1"))
+                .thenReturn(Optional.of(existingTodo));
+        when(todoRepository.save(updatedTodo))
+                .thenReturn(updatedTodo);
+
+        mockMvc.perform(put("/api/todo/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "description": "Finish recap project",
+                              "status": "IN_PROGRESS"
+                            }
+                            """))
+                .andExpect(status().isOk())
+                .andExpect(content().json("""
+                    {
+                      "id": "1",
+                      "description": "Finish recap project",
+                      "status": "IN_PROGRESS"
+                    }
+                    """));
+
+        verify(todoRepository).findById("1");
+        verify(todoRepository).save(updatedTodo);
+    }
+
+    @Test
+    void updateTodo_ReturnsNotFound_WhenIdDoesNotExist() throws Exception {
+        when(todoRepository.findById("missing"))
+                .thenReturn(Optional.empty());
+
+        mockMvc.perform(put("/api/todo/missing")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                            {
+                              "description": "Finish recap project",
+                              "status": "IN_PROGRESS"
+                            }
+                            """))
+                .andExpect(status().isNotFound());
+
+        verify(todoRepository).findById("missing");
+        verify(todoRepository, never()).save(any(Todo.class));
     }
 }

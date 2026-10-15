@@ -41,4 +41,24 @@ public class TodoController {
                         "Todo not found: " + id
                 ));
     }
+
+    @PutMapping("/{id}")
+    public Todo updateTodo(
+            @PathVariable String id,
+            @RequestBody TodoDto todoDto
+    ) {
+        Todo existingTodo = todoRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(
+                        HttpStatus.NOT_FOUND,
+                        "Todo not found: " + id
+                ));
+
+        Todo updatedTodo = new Todo(
+                existingTodo.id(),
+                todoDto.description(),
+                todoDto.status()
+        );
+
+        return todoRepository.save(updatedTodo);
+    }
 }
